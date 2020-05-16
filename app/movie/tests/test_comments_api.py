@@ -16,6 +16,8 @@ class CommentsApiTests(TestCase):
 
     """ Test module for GET all comments API """
     def setUp(self):
+        self.client = APIClient()
+
         Comment.objects.create(
             movie_id=1,
             post_date='2019-01-01',
@@ -29,9 +31,9 @@ class CommentsApiTests(TestCase):
 
     def test_get_all_comments(self):
         """Test retrieving comments"""
-        client = APIClient()
-        response = client.get(COMMENTS_URL)
-        comments = Comment.objects.all()
+
+        response = self.client.get(COMMENTS_URL)
+        comments = Comment.objects.all().order_by('-post_date')
         serializer = CommentSerializer(comments, many=True)
         self.assertEqual(response.data, serializer.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
