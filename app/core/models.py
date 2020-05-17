@@ -38,3 +38,10 @@ class Movie(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Top(models.Model):
+    """Model for ranking movies"""
+    movie_id = models.IntegerField()
+    total_comments = models.IntegerField()
+    rank = models.IntegerField()

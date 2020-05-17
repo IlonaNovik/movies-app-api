@@ -18,5 +18,14 @@ class MovieAdmin(admin.ModelAdmin):
     list_per_page = 25
 
 
+class TopAdmin(admin.ModelAdmin):
+    list_display = ('id', 'movie_id', 'total_comments', 'rank')
+    list_display_links = ('id', )
+    list_filter = ['movie_id', 'total_comments', 'rank']
+    search_fields = ('movie_id', 'total_comments', 'rank')
+    list_per_page = 25
+
+
 admin.site.register(models.Comment, CommentAdmin)
 admin.site.register(models.Movie, MovieAdmin)
+admin.site.register(models.Top, TopAdmin)

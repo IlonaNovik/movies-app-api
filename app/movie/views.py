@@ -1,3 +1,5 @@
+from rest_framework.permissions import AllowAny
+from rest_framework.authentication import SessionAuthentication
 from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 
@@ -11,13 +13,58 @@ class CommentViewSet(viewsets.GenericViewSet,
                      mixins.ListModelMixin,
                      mixins.CreateModelMixin):
     """Manage comments in the database"""
-    queryset = Comment.objects.all()
     serializer_class = serializers.CommentSerializer
+    queryset = Comment.objects.all()
+    permission_classes = (AllowAny,)
+    authentication_classes = (SessionAuthentication,)
+
+    def get_queryset(self):
+        """Filtering comments by movie id"""
+        queryset = Comment.objects.all()
+        movie_id = self.request.query_params.get('movie_id')
+        if movie_id:
+            return queryset.filter(movie_id=movie_id)
+        return queryset
+
+    def create(self, request, *args, **kwargs):
+        """Creating a comment and assigning to a movie"""
+        if request.data['movie_id'] and request.data['comment_body']:
+            movie_id_request = request.data['movie_id']
+            comment_body = request.data['comment_body']
+            movie = Movie.objects.filter(id=int(movie_id_request))[0]
+
+            if movie:
+                new_comment = Comment.objects.create(
+                    movie_id=int(movie_id_request),
+                    comment_body=comment_body
+                )
+                new_comment.save()
+                movie.comments.add(new_comment)
+                serializer = serializers.CommentSerializer(new_comment)
+                return Response(serializer.data)
+            else:
+                return Response(
+                    data={
+                        'detail': 'Movie with requested id' +
+                        ' not found in database'
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        else:
+            return Response(
+                data={
+                    'detail': 'Error! Post request contains empty fields'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class MovieViewSet(viewsets.ModelViewSet):
     """Manage movies in database"""
     serializer_class = serializers.MovieSerializer
+
+    permission_classes = (AllowAny,)
+    authentication_classes = (SessionAuthentication,)
 
     def get_queryset(self):
         queryset = Movie.objects.all()
@@ -65,6 +112,9 @@ class MovieViewSet(viewsets.ModelViewSet):
                 return Response(serializer.data)
             except KeyError:
                 return Response(
-                    data={'detail': 'The movie title does not exist or is incorrect'},
+                    data={
+                        'detail': 'The movie title does not' +
+                                  ' exist or is incorrect'
+                    },
                     status=status.HTTP_400_BAD_REQUEST
                 )
