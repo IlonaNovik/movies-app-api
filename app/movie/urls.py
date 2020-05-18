@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from movie import views
 
+
 router = DefaultRouter()
 router.register('comments', views.CommentViewSet, basename='comment')
 router.register('movies', views.MovieViewSet, basename='movie')

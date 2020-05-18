@@ -14,9 +14,7 @@ import requests
 from .set_ranking import set_rank_for_movie
 
 
-class CommentViewSet(viewsets.GenericViewSet,
-                     mixins.ListModelMixin,
-                     mixins.CreateModelMixin):
+class CommentViewSet(viewsets.ModelViewSet):
     """Manage comments in the database"""
     serializer_class = serializers.CommentSerializer
     permission_classes = (AllowAny,)
@@ -76,7 +74,9 @@ class CommentViewSet(viewsets.GenericViewSet,
             )
 
 
-class MovieViewSet(viewsets.ModelViewSet):
+class MovieViewSet(viewsets.GenericViewSet,
+                   mixins.ListModelMixin,
+                   mixins.CreateModelMixin):
     """Manage movies in database"""
     serializer_class = serializers.MovieSerializer
 
@@ -170,7 +170,8 @@ class MovieViewSet(viewsets.ModelViewSet):
                 )
 
 
-class TopViewSet(viewsets.ModelViewSet):
+class TopViewSet(viewsets.GenericViewSet,
+                 mixins.ListModelMixin):
     """Manage comments in the database"""
 
     """
