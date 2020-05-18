@@ -1,13 +1,16 @@
+from django.urls import reverse
 from django.test import TestCase
+
+from rest_framework import status
+from rest_framework.test import APIClient
+
+from movie.serializers import TopSerializer
 
 from core.models import Comment, Top
 
 
 def set_rank_for_movie(comments):
     """Function for setting rank to movies"""
-
-    if len(comments) == 0:
-        return {'details': 'No comments found for selected date range'}
 
     movie_id_list = []
 
@@ -93,12 +96,32 @@ def set_rank_for_movie(comments):
     return result
 
 
+TOPS_URL = reverse('movies:top-list')
+
+
 class SetRankingTest(TestCase):
     """Class for testing movie rank"""
 
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_get_error_when_request_all_top(self):
+        """Test getting error when retrieve top"""
+
+        res = self.client.get(TOPS_URL)
+        error = {''
+                 'detail': "Missing required parameters" +
+                           " start_date and end_date"
+                 }
+        self.assertEqual(res.data, error)
+        self.assertEqual(
+            res.status_code,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
     def test_set_ranking_for_movies_successful(self):
-        start_date = "2020-05-17"
-        end_date = "2020-05-17"
+        """Test for setting ranking to movies dependent
+        on amount of comments during specified time period"""
 
         Comment.objects.create(
             movie_id=26,
@@ -121,35 +144,41 @@ class SetRankingTest(TestCase):
             post_date="2020-05-17"
         )
 
+        payload = {
+            'start_date': "2020-05-17",
+            'end_date': "2020-05-17"
+        }
         comments = Comment.objects.filter(
-            post_date__range=[start_date, end_date]
+            post_date__range=[payload['start_date'], payload['end_date']]
         )
         top_movies = set_rank_for_movie(comments)
+        res = self.client.get(TOPS_URL, payload)
+        serializer = TopSerializer(top_movies, many=True)
 
-        self.assertEqual(top_movies[0].movie_id, 26)
-        self.assertEqual(top_movies[0].total_comments, 3)
-        self.assertEqual(top_movies[0].rank, 1)
-
-        self.assertEqual(top_movies[1].movie_id, 30)
-        self.assertEqual(top_movies[1].total_comments, 1)
-        self.assertEqual(top_movies[1].rank, 2)
+        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_no_comments_for_selected_date_range(self):
-        start_date = "2020-04-17"
-        end_date = "2020-04-17"
+        payload = {
+            'start_date': "2020-05-17",
+            'end_date': "2020-05-17"
+        }
+        error = {
+                 'detail': "No comments found for selected date range"
+                 }
 
-        comments = Comment.objects.filter(
-            post_date__range=[start_date, end_date]
+        res = self.client.get(TOPS_URL, payload)
+        self.assertEqual(res.data, error)
+        self.assertEqual(
+            res.status_code,
+            status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-        result = {'details': 'No comments found for selected date range'}
-        top_movies = set_rank_for_movie(comments)
-
-        self.assertEqual(top_movies, result)
-
     def test_set_ranking_for_one_movie_found(self):
-        start_date = "2020-05-17"
-        end_date = "2020-05-17"
+        payload = {
+            'start_date': "2020-05-17",
+            'end_date': "2020-05-17"
+        }
 
         Comment.objects.create(
             movie_id=26,
@@ -163,17 +192,21 @@ class SetRankingTest(TestCase):
         )
 
         comments = Comment.objects.filter(
-            post_date__range=[start_date, end_date]
+            post_date__range=[payload['start_date'], payload['end_date']]
         )
-        top_movies = set_rank_for_movie(comments)
 
-        self.assertEqual(top_movies[0].movie_id, 26)
-        self.assertEqual(top_movies[0].total_comments, 2)
-        self.assertEqual(top_movies[0].rank, 1)
+        top_movies = set_rank_for_movie(comments)
+        res = self.client.get(TOPS_URL, payload)
+        serializer = TopSerializer(top_movies, many=True)
+        print(serializer.data)
+        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_set_ranking_for_many_movies_found(self):
-        start_date = "2020-05-17"
-        end_date = "2020-05-17"
+        payload = {
+            'start_date': "2020-05-17",
+            'end_date': "2020-05-17"
+        }
 
         Comment.objects.create(
             movie_id=26,
@@ -207,16 +240,15 @@ class SetRankingTest(TestCase):
         )
 
         comments = Comment.objects.filter(
-            post_date__range=[start_date, end_date]
+            post_date__range=[payload['start_date'], payload['end_date']]
         )
-        top_movies = set_rank_for_movie(comments)
 
-        self.assertEqual(top_movies[0].movie_id, 26)
-        self.assertEqual(top_movies[0].total_comments, 2)
-        self.assertEqual(top_movies[0].rank, 2)
-        self.assertEqual(top_movies[1].movie_id, 25)
-        self.assertEqual(top_movies[1].total_comments, 1)
-        self.assertEqual(top_movies[1].rank, 3)
-        self.assertEqual(top_movies[2].movie_id, 30)
-        self.assertEqual(top_movies[2].total_comments, 3)
-        self.assertEqual(top_movies[2].rank, 1)
+        top_movies = set_rank_for_movie(comments)
+        sorted_top_movies = sorted(top_movies, key=lambda x: x.rank)
+        res = self.client.get(TOPS_URL, payload)
+        serializer = TopSerializer(sorted_top_movies, many=True)
+        print(top_movies)
+        print(serializer)
+
+        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)

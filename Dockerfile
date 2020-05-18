@@ -1,7 +1,7 @@
 FROM python:3.8-alpine
 MAINTAINER Ilona Novik
 
-ENV PYTHONUNBUFFERED=0
+ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /requirements.txt
 RUN apk add --update --no-cache postgresql-client

@@ -4,10 +4,12 @@ from rest_framework import viewsets, mixins, status
 from rest_framework.response import Response
 from rest_framework.exceptions import APIException
 
+from django.core.exceptions import ValidationError
+
 from core.models import Comment, Movie, Top
 from movie import serializers
 
-from datetime import datetime, date
+from datetime import datetime
 import requests
 from .set_ranking import set_rank_for_movie
 
@@ -31,8 +33,11 @@ class CommentViewSet(viewsets.GenericViewSet,
                 if id_exists and comments_exist:
                     return queryset.filter(movie_id=movie_id)
                 elif id_exists and not comments_exist:
-                    raise APIException(
-                        "No comments added for requested movie"
+                    return Response(
+                        data={
+                            'detail': "No comments added for requested movie"
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
                     )
                 else:
                     raise APIException(
@@ -40,9 +45,7 @@ class CommentViewSet(viewsets.GenericViewSet,
                     )
             return queryset
         except ValueError:
-            raise APIException(
-                "Please enter correct movie id"
-            )
+            raise APIException("Please enter correct movie id")
 
     def create(self, request, *args, **kwargs):
         """Creating a comment and assigning to a movie"""
@@ -69,8 +72,8 @@ class CommentViewSet(viewsets.GenericViewSet,
                 )
         else:
             raise APIException(
-                    "Error! Post request contains empty fields"
-                )
+                "Error! Post request contains empty fields"
+            )
 
 
 class MovieViewSet(viewsets.ModelViewSet):
@@ -109,7 +112,8 @@ class MovieViewSet(viewsets.ModelViewSet):
                 return queryset.filter(year=year)
             else:
                 raise APIException(
-                    "Movie with requested year production does not exist in database"
+                    "Movie with requested production " +
+                    "year does not exist in database"
                 )
         if genre:
             genre_exists = Movie.objects.filter(genre__icontains=genre)
@@ -119,8 +123,6 @@ class MovieViewSet(viewsets.ModelViewSet):
                 raise APIException(
                     "Movie with requested genre does not exist in database"
                 )
-
-
         return queryset
 
     def create(self, request, *args, **kwargs):
@@ -193,20 +195,35 @@ class TopViewSet(viewsets.ModelViewSet):
                 )
                 """Date parameters and comments validation"""
                 if end_date:
-                    start_date_parsed = datetime.strptime(start_date, '%Y-%m-%d')
-                    end_date_parsed = datetime.strptime(end_date, '%Y-%m-%d')
+                    start_date_parsed = datetime.strptime(
+                        start_date, '%Y-%m-%d'
+                    )
+                    end_date_parsed = datetime.strptime(
+                        end_date, '%Y-%m-%d'
+                    )
                     if start_date_parsed > datetime.now():
-                        raise APIException("Start date cannot be in the future")
+                        raise APIException(
+                            "Start date cannot be in the future"
+                        )
                     elif start_date_parsed > end_date_parsed:
-                        raise APIException("Start date cannot be after the end date")
+                        raise APIException(
+                            "Start date cannot be after the end date"
+                        )
                 if len(comments) == 0 and start_date and end_date:
-                    raise APIException("No comments found for selected date range")
+                    raise APIException(
+                        "No comments found for selected date range"
+                    )
                 else:
                     set_rank_for_movie(comments)
                     queryset = Top.objects.all().order_by('rank')
 
                     return queryset
-            except:
-                raise APIException("Error! Requested parameters must be date format (yyyy-mm-dd)")
+            except ValidationError:
+                raise APIException(
+                    "Error! Requested parameters " +
+                    "must be date format (yyyy-mm-dd)"
+                )
         else:
-            raise APIException("Missing required parameters start_date and end_date")
+            raise APIException(
+                "Missing required parameters start_date and end_date"
+            )

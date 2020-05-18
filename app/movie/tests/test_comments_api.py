@@ -82,8 +82,12 @@ class CommentsApiTests(TestCase):
         }
         res1 = self.client.post(COMMENTS_URL, payload1)
         res2 = self.client.post(COMMENTS_URL, payload2)
-        self.assertEqual(res1.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(res2.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            res1.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+        self.assertEqual(
+            res2.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
     def test_retrieve_comments_assigned_to_movie(self):
         """Test filtering comments by movie id"""
