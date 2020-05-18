@@ -11,9 +11,9 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 class MovieAdmin(admin.ModelAdmin):
-    list_display = ('id', 'title', 'year', 'rank')
-    list_display_links = ('id', 'title', 'rank')
-    list_filter = ['id', 'title', 'rank', 'genre']
+    list_display = ('id', 'title', 'year')
+    list_display_links = ('id', 'title')
+    list_filter = ['id', 'title', 'genre']
     search_fields = ('id', 'title', 'genre')
     list_per_page = 25
 

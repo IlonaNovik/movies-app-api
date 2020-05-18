@@ -34,7 +34,6 @@ class Movie(models.Model):
     production = models.CharField(max_length=255, blank=True)
     website = models.CharField(max_length=255, blank=True)
     comments = models.ManyToManyField('Comment')
-    rank = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title

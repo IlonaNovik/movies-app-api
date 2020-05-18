@@ -6,7 +6,7 @@ from movie import views
 router = DefaultRouter()
 router.register('comments', views.CommentViewSet, basename='comment')
 router.register('movies', views.MovieViewSet, basename='movie')
-# router.register('top', views.TopViewSet, basename='top')
+router.register('top', views.TopViewSet, basename='top')
 
 app_name = 'movies'
 
