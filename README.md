@@ -34,5 +34,4 @@ Comment can be filtered by movie id
 
 GET:
 Should return top movies already present in the database
-Rranking based on a number of comments added to the movie during specified date range
-Required parameters are start_date and end_date
+Ranking based on a number of comments added to the movie during specified date range. Required parameters are start_date and end_date
