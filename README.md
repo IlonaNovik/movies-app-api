@@ -21,10 +21,10 @@ Response includes full movie object, along with all data fetched from external A
 GET:
 Fetches list of all movies already present in application database
 Movies can be filtered by id, title, year and genre
-### /movies/?{id}
-### /movies/?{title}
-### /movies/?{year}
-### /movies/?{genre}
+**/movies/?{id}
+**/movies/?{title}
+**/movies/?{year}
+**/movies/?{genre}
 
 ## /comments:
 
@@ -34,12 +34,12 @@ Request body should contain ID of movie already present in database, and comment
 GET:
 Fetch list of all comments present in application database.
 Comment can be filtered by movie id
-### /comments/?{movie_id}
+**/comments/?{movie_id}
 
 ## /top:
 
 GET:
 Should return top movies already present in the database
 Ranking based on a number of comments added to the movie during specified date range. Required parameters are start_date and end_date
-### /top/?{start_date}&{end_date}
+**/top/?{start_date}&{end_date}
 
