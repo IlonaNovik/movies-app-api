@@ -8,6 +8,9 @@ RUN apk add --update --no-cache postgresql-client
 RUN apk add --update --no-cache --virtual .tmp-build-deps gcc libc-dev linux-headers postgresql-dev
 RUN pip install -r /requirements.txt
 RUN pip install requests
+RUN pip install django-rest-swagger
+RUN pip install coreapi pyyaml
+RUN pip install django-filter
 RUN apk del .tmp-build-deps
 
 RUN mkdir /app

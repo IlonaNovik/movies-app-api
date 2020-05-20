@@ -13,9 +13,27 @@ from datetime import datetime
 import requests
 from .set_ranking import set_rank_for_movie
 
+from django_filters.rest_framework import DjangoFilterBackend
+import coreapi
 
-class CommentViewSet(viewsets.ModelViewSet):
+
+class CommentsFilterBackend(DjangoFilterBackend):
+    def get_schema_fields(self, view):
+        return [coreapi.Field(
+            name='movie_id',
+            location='query',
+            required=False,
+            type='int'
+        )]
+
+
+class CommentViewSet(viewsets.GenericViewSet,
+                     mixins.ListModelMixin,
+                     mixins.CreateModelMixin):
     """Manage comments in the database"""
+
+    filter_backends = (CommentsFilterBackend,)
+
     serializer_class = serializers.CommentSerializer
     permission_classes = (AllowAny,)
     authentication_classes = (SessionAuthentication,)
@@ -24,6 +42,10 @@ class CommentViewSet(viewsets.ModelViewSet):
         """Filtering comments by movie id"""
         try:
             queryset = Comment.objects.all()
+            if not queryset:
+                raise APIException(
+                    "No movies has been commented yet"
+                )
             movie_id = self.request.query_params.get('movie_id')
             id_exists = Movie.objects.filter(id=movie_id)
             comments_exist = Comment.objects.filter(movie_id=movie_id)
@@ -74,10 +96,44 @@ class CommentViewSet(viewsets.ModelViewSet):
             )
 
 
+class MoviesFilterBackend(DjangoFilterBackend):
+    def get_schema_fields(self, view):
+        fields = [
+            coreapi.Field(
+                name='movie_id',
+                location='query',
+                required=False,
+                type='int'
+            ),
+            coreapi.Field(
+                name='title',
+                location='query',
+                required=False,
+                type='string'
+            ),
+            coreapi.Field(
+                name='year',
+                location='query',
+                required=False,
+                type='string'
+            ),
+            coreapi.Field(
+                name='genre',
+                location='query',
+                required=False,
+                type='string'
+            )
+        ]
+        return fields
+
+
 class MovieViewSet(viewsets.GenericViewSet,
                    mixins.ListModelMixin,
                    mixins.CreateModelMixin):
     """Manage movies in database"""
+
+    filter_backends = (MoviesFilterBackend,)
+
     serializer_class = serializers.MovieSerializer
 
     permission_classes = (AllowAny,)
@@ -85,6 +141,10 @@ class MovieViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         queryset = Movie.objects.all()
+        if not queryset:
+            raise APIException(
+                "No movies has been added to database"
+            )
         id = self.request.query_params.get('id')
         title = self.request.query_params.get('title')
         year = self.request.query_params.get('year')
@@ -170,14 +230,31 @@ class MovieViewSet(viewsets.GenericViewSet,
                 )
 
 
+class TopFilterBackend(DjangoFilterBackend):
+    def get_schema_fields(self, view):
+        fields = [
+            coreapi.Field(
+                name='start_date',
+                location='query',
+                required=True,
+                type='string'
+            ),
+            coreapi.Field(
+                name='end_date',
+                location='query',
+                required=True,
+                type='string'
+            )
+        ]
+        return fields
+
+
 class TopViewSet(viewsets.GenericViewSet,
                  mixins.ListModelMixin):
     """Manage comments in the database"""
 
-    """
-    param1 -- A first parameter
-    param2 -- A second parameter
-    """
+    filter_backends = (TopFilterBackend,)
+
     serializer_class = serializers.TopSerializer
 
     permission_classes = (AllowAny,)
