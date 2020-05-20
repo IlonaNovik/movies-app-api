@@ -51,6 +51,12 @@ class CommentsApiTests(TestCase):
 
     def test_get_all_comments(self):
         """Test retrieving comments"""
+        movie1 = sample_movie('Shrek')
+        new_comment = Comment.objects.create(
+            movie_id=movie1.id,
+            comment_body="I didn't like that"
+        )
+        movie1.comments.add(new_comment)
 
         response = self.client.get(COMMENTS_URL)
         comments = Comment.objects.all().order_by('-post_date')
@@ -66,7 +72,7 @@ class CommentsApiTests(TestCase):
             'comment_body': "I didn't like that"
         }
         res = self.client.post(COMMENTS_URL, payload)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def test_create_comment_invalid(self):
         """Test creating a new comment with invalid payload"""

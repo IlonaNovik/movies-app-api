@@ -100,7 +100,7 @@ class MoviesFilterBackend(DjangoFilterBackend):
     def get_schema_fields(self, view):
         fields = [
             coreapi.Field(
-                name='movie_id',
+                name='id',
                 location='query',
                 required=False,
                 type='int'
@@ -145,15 +145,15 @@ class MovieViewSet(viewsets.GenericViewSet,
             raise APIException(
                 "No movies has been added to database"
             )
-        id = self.request.query_params.get('id')
+        movie_id = self.request.query_params.get('id')
         title = self.request.query_params.get('title')
         year = self.request.query_params.get('year')
         genre = self.request.query_params.get('genre')
 
-        if id:
-            id_exists = Movie.objects.filter(id=int(id))
+        if movie_id:
+            id_exists = Movie.objects.filter(id=int(movie_id))
             if id_exists:
-                return queryset.filter(id=int(id))
+                return queryset.filter(id=int(movie_id))
             else:
                 raise APIException(
                     "Movie with requested id does not exist in database"
