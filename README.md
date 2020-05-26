@@ -6,6 +6,11 @@ Movies API provides full information according to movie title fetched from exter
 It also allows to post comments to movies already fetched and sets ranking based on amount of comments.
 
 
+## Requirements
+
+* docker desktop
+* postgreSQL
+
 ## Setup
 
 API is dockerized and can be setup on local machine using commands:
