@@ -72,7 +72,7 @@ class CommentsApiTests(TestCase):
             'comment_body': "I didn't like that"
         }
         res = self.client.post(COMMENTS_URL, payload)
-        self.assertEqual(res.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_create_comment_invalid(self):
         """Test creating a new comment with invalid payload"""
